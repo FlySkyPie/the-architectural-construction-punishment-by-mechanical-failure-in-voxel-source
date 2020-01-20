@@ -1,6 +1,6 @@
 #include <iostream>
 #include "GravityLattice.h"
-#include "Node.h"
+#include "StructureElement.h"
 
 GravityLattice::GravityLattice() {
   //this->createContinuous();
@@ -8,79 +8,90 @@ GravityLattice::GravityLattice() {
 }
 
 GravityLattice::~GravityLattice() {
-  //release nodes
-  std::vector<Node*>::iterator it;
+  //release StructureElements
+  std::vector<StructureElement*>::iterator it;
 
-  for (it = this->nodes.begin(); it < this->nodes.end(); it++) {
+  for (it = this->structureElements.begin(); it < this->structureElements.end(); it++) {
     delete *it;
   }
 }
 
 void GravityLattice::tick() {
-  std::vector<Node*>::iterator it;
+  std::vector<StructureElement*>::iterator it;
 
-  for (it = this->nodes.begin(); it < this->nodes.end(); it++) {
-    (*it)->flowEnergyToBuffer();
+  for (it = this->structureElements.begin(); it < this->structureElements.end(); it++) {
+    (*it)->flowGravitation();
   }
 
-  for (it = this->nodes.begin(); it < this->nodes.end(); it++) {
-    (*it)->updateEnergy();
+  for (it = this->structureElements.begin(); it < this->structureElements.end(); it++) {
+    (*it)->updateGravitation();
+  }
+
+  for (it = this->structureElements.begin(); it < this->structureElements.end(); it++) {
+    (*it)->flowCorrection();
+  }
+
+  for (it = this->structureElements.begin(); it < this->structureElements.end(); it++) {
+    (*it)->updateCorrection();
   }
 }
 
 void GravityLattice::printStatus() {
-  std::vector<Node*>::iterator it;
-  for (it = this->nodes.begin(); it < this->nodes.end(); it++) {
-    std::cout << (*it)->getEnergy() << ",";
+  std::vector<StructureElement*>::iterator it;
+  for (it = this->structureElements.begin(); it < this->structureElements.end(); it++) {
+    std::cout << (*it)->getGravitation() << ",";
   }
   std::cout << "\n";
 }
 
 void GravityLattice::createContinuous() {
-  this->addNode(1, 1, 1); //Fulcrum
+  this->addStructureElement(1, 1, 1); //Fulcrum
   for (int i = 0; i < 10; i++) {
-    this->addNode(1, 0, 1);
+    this->addStructureElement(1, 0, 1);
   }
-  this->addNode(1, 1, 1); //Fulcrum
+  this->addStructureElement(1, 1, 1); //Fulcrum
   for (int i = 0; i < 87; i++) {
-    this->addNode(1, 0, 1);
+    this->addStructureElement(1, 0, 1);
   }
-  this->addNode(1, 1, 1); //Fulcrum
+  this->addStructureElement(1, 1, 1); //Fulcrum
 }
 
 void GravityLattice::createOverhanging() {
-  this->addNode(1, 0, 0); //air
+  this->addStructureElement(1, 0, 0); //air
   for (int i = 0; i < 10; i++) {
-    this->addNode(1, 0, 1);
+    this->addStructureElement(1, 0, 1);
   }
-  this->addNode(1, 1, 1); //Fulcrum
+  this->addStructureElement(1, 1, 1); //Fulcrum
   for (int i = 0; i < 76; i++) {
-    this->addNode(1, 0, 1);
+    this->addStructureElement(1, 0, 1);
   }
-  this->addNode(1, 1, 1); //Fulcrum
+  this->addStructureElement(1, 1, 1); //Fulcrum
   for (int i = 0; i < 10; i++) {
-    this->addNode(1, 0, 1);
+    this->addStructureElement(1, 0, 1);
   }
-  this->addNode(1, 0, 0); //air
+  this->addStructureElement(1, 0, 0); //air
 }
 
-void GravityLattice::addNode(float mass, bool isBoundary, bool isSolid) {
-  Node* node2 = new Node(mass, isBoundary, isSolid);
+void GravityLattice::addStructureElement(float mass, bool isBoundary, bool isSolid) {
+  //std::cout << "mass: " << mass << ", isBoundary: " << isBoundary << ", isSolid: " << isSolid << "\n";
 
-  if (this->nodes.size() == 0) {
-    this->nodes.push_back(node2);
+  StructureElement* StructureElement2 = new StructureElement(mass, isBoundary, isSolid);
+
+  if (this->structureElements.size() == 0) {
+    this->structureElements.push_back(StructureElement2);
     return;
   }
 
-  Node* node1 = this->nodes.back();
+  StructureElement* StructureElement1 = this->structureElements.back();
 
-  if (node1->isSolid()) {
-    node2->setContactedLeftNode(node1);
+  //std::cout << "StructureElement1->isSolid(): " << StructureElement1->isSolid() << "\n";
+
+  if (StructureElement1->isSolid()) {
+    StructureElement2->addNeighbor(0, 0, StructureElement1);
   }
-  if (node2->isSolid()) {
-    node1->setContactedRightNode(node2);
+  if (StructureElement2->isSolid()) {
+    StructureElement1->addNeighbor(0, 1, StructureElement2);
   }
 
-
-  this->nodes.push_back(node2);
+  this->structureElements.push_back(StructureElement2);
 }

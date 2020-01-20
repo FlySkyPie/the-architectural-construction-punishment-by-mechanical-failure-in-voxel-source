@@ -1,5 +1,5 @@
 #pragma once
-#include "Node.h"
+#include "StructureElement.h"
 #include <vector>
 
 class GravityLattice{
@@ -12,7 +12,7 @@ private:
   void createContinuous();
   void createOverhanging();
   
-  void addNode(float mass, bool isBoundary, bool isSolid);
+  void addStructureElement(float mass, bool isBoundary, bool isSolid);
   
-  std::vector <Node*> nodes;
+  std::vector <StructureElement*> structureElements;
 };
