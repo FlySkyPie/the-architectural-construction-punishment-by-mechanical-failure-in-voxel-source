@@ -1,11 +1,10 @@
-#include  "GravityLattice.h"
+#include <iostream>
+#include "LatticeChunk.h"
+#include "NewTypDefinition.h"
 
-
-int main(){
-  GravityLattice g;
-  for(int i=0;i<1000;i++){
-    g.tick();
-    g.printStatus();
-  }
+int main() {
+  ChunkMap map{};
+  LatticeChunk * latticeChunk = new LatticeChunk(map);
+  
   return 0;
 }

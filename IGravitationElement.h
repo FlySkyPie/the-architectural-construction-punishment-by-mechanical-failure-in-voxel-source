@@ -1,9 +1,9 @@
 #pragma once
 
-class IFlowElement {
+class IGravitationElement {
 public:
 
-  virtual ~IFlowElement() {
+  virtual ~IGravitationElement() {
   }
   virtual void addGravitation(float gravitation) = 0;
   virtual void addCorrection(float correction) = 0;

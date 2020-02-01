@@ -1,9 +1,9 @@
 #pragma once
 
-class IFlowControlled {
+class IComputableElement {
 public:
 
-  virtual ~IFlowControlled() {
+  virtual ~IComputableElement() {
   }
 
   virtual void flowGravitation() = 0;

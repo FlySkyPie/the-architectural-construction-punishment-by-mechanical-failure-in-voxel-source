@@ -1,9 +1,12 @@
 #pragma once
 
-#include "IFlowControlled.h"
-#include "IFlowElement.h"
-#include "IFlowRegisted.h"
-#include "IFlowStatistics.h"
+#include <array>
+#include "IComputableElement.h"
+#include "IGravitationElement.h"
+#include "IElementStatus.h"
+#include "IElementResult.h"
+
+#include "NewTypDefinition.h"
 
 struct Capacitor {
   float energy;
@@ -11,26 +14,27 @@ struct Capacitor {
   float oldEnergy;
 };
 
-class StructureElement : public IFlowControlled, public IFlowElement,
-public IFlowRegisted, public IFlowStatistics {
+class StructureElement : public IComputableElement, public IGravitationElement,
+public IElementStatus, public IElementResult {
 public:
   StructureElement(float mass, bool isBoundary, bool isSolid);
-
-  //IFlowElement 
+  ~StructureElement();
+  //IGravitationElement
   void addGravitation(float gravitation);
   void addCorrection(float correction);
 
-  //IFlowRegisted
-  void addNeighbor(uint16_t axis, bool direction, IFlowElement *element);
+  //IElementStatus
+  void updateDistributary(int axis, int direction, bool status);
+  void setNeighbor(HexaheElement elements, HexaheDistributary distributary);
   bool isSolid();
 
-  //IFlowControlled
+  //IComputableElement
   void flowGravitation();
   void updateGravitation();
   void flowCorrection();
   void updateCorrection();
 
-  //IFlowStatistic
+  //IElementResult
   float getGravitation();
   float getCorrection();
   float getCorrectedGravitation();
@@ -43,7 +47,8 @@ private:
   Capacitor gravitaionCapacitor;
   Capacitor correctionCapacitor;
 
-  IFlowElement* neighbors [3][2];
+  std::array< StructureElement *, 6> neighbors;
+  std::array< bool, 6 > distributary;
 
   float getGravitaionDifference();
 

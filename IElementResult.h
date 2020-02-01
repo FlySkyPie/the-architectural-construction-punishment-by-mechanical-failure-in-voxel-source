@@ -1,9 +1,9 @@
 #pragma once
 
-class IFlowStatistics {
+class IElementResult {
 public:
 
-  virtual ~IFlowStatistics() {
+  virtual ~IElementResult() {
   }
 
   virtual float getGravitation() = 0;

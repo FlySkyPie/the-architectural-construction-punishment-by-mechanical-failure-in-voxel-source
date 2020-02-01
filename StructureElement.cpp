@@ -1,8 +1,7 @@
-#include "StructureElement.h"
-
 #include <cmath>
 #include <cstdint>
 #include <iostream>//edbug
+#include "StructureElement.h"
 
 StructureElement::StructureElement(float mass, bool boundary, bool solid) {
   this->mass = mass;
@@ -17,14 +16,17 @@ StructureElement::StructureElement(float mass, bool boundary, bool solid) {
   this->correctionCapacitor.energyBuffer = 0;
   this->correctionCapacitor.oldEnergy = 0;
 
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 2; j++) {
-      this->neighbors[i][j] = nullptr;
-    }
+  for (int i = 0; i < 6; i++) {
+    this->neighbors.at(i) = nullptr;
   }
 }
 
-//IFlowElement 
+StructureElement::~StructureElement() {
+}
+
+/***********************************************
+ * Interfaces from IGravitationElement.
+ ************************************************/
 
 void StructureElement::addGravitation(float gravitation) {
   this->gravitaionCapacitor.energyBuffer += gravitation;
@@ -34,51 +36,50 @@ void StructureElement::addCorrection(float correction) {
   this->correctionCapacitor.energyBuffer += correction;
 }
 
-//IFlowRegisted
+/***********************************************
+ * Interfaces from IElementStatus.
+ ************************************************/
 
-void StructureElement::addNeighbor(uint16_t axis, bool direction, IFlowElement *element) {
-  int16_t directionIndex = direction ? 1 : 0;
+void StructureElement::updateDistributary(int axis, int direction, bool status) {
+  this->distributary.at(axis * 2 + direction) = status;
+}
 
-  if (axis >= 3) {
-    throw "Must been 0~2.";
+void StructureElement::setNeighbor(HexaheElement elements, HexaheDistributary distributary) {
+  for (int i = 0; i < 6; i++) {
+    this->neighbors.at(i) = elements.at(i);
+    this->distributary.at(i) = distributary.at(i);
   }
-
-  //std::cout << "Point A===\n";
-  //std::cout << "axis: " << axis << ",direction: " << direction << ", element: " << element << "\n";
-
-  this->neighbors[axis][directionIndex] = element;
 }
 
 bool StructureElement::isSolid() {
   return this->solid;
 }
 
+/***********************************************
+ * Interfaces from IComputableElement.
+ ************************************************/
 
-//IFlowControlled
-
+/*
+ * Flow gravitation to neighbor elements, excepted the element above it.
+ */
 void StructureElement::flowGravitation() {
   char allocation = 0;
 
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 2; j++) {
-      if (this->neighbors[i][j]) {
-        allocation += 1;
-      }
+  for (int i = 0; i < 5; i++) {
+    if (this->distributary.at(i)) {
+      allocation += 1;
     }
   }
 
   float value = this->gravitaionCapacitor.energy / allocation;
 
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 2; j++) {
-      if (this->neighbors[i][j]) {
-        //std::cout << "Point A: \n";
-        this->neighbors[i][j]->addGravitation(value);
-      }
+  for (int i = 0; i < 5; i++) {
+    if (this->distributary.at(i)) {
+      this->neighbors.at(i)->addGravitation(value);
     }
   }
 
-  //natural flow
+  //gravitation rain
   this->addGravitation(this->mass);
 }
 
@@ -95,25 +96,21 @@ void StructureElement::updateGravitation() {
 void StructureElement::flowCorrection() {
   char allocation = 0;
 
-  for (int i = 0; i < 2; i++) {
-    for (int j = 0; j < 2; j++) {
-      if (this->neighbors[i][j]) {
-        allocation += 1;
-      }
+  for (int i = 0; i < 4; i++) {
+    if (this->neighbors.at(i)) {
+      allocation += 1;
     }
   }
 
   float value = this->correctionCapacitor.energy / allocation;
 
-  for (int i = 0; i < 2; i++) {
-    for (int j = 0; j < 2; j++) {
-      if (this->neighbors[i][j]) {
-        this->neighbors[i][j]->addCorrection(value);
-      }
+  for (int i = 0; i < 4; i++) {
+    if (this->neighbors.at(i)) {
+      this->neighbors.at(i)->addCorrection(value);
     }
   }
 
-  //natural flow
+  //Increment from gravitation changed.
   this->addCorrection(this->getGravitaionDifference());
 }
 
@@ -123,7 +120,9 @@ void StructureElement::updateCorrection() {
   this->correctionCapacitor.energyBuffer = 0;
 }
 
-//IFlowStatistic
+/***********************************************
+ * Interfaces from IElementResult.
+ ************************************************/
 
 float StructureElement::getGravitation() {
   return this->gravitaionCapacitor.energy;
@@ -138,7 +137,9 @@ float StructureElement::getCorrectedGravitation() {
 
 }
 
-//private stuff
+/***********************************************
+ * Private Stuff
+ ************************************************/
 
 float StructureElement::getGravitaionDifference() {
   return (this->gravitaionCapacitor.energy - this->gravitaionCapacitor.oldEnergy);
