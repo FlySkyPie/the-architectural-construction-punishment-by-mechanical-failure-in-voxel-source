@@ -67,9 +67,12 @@ void LatticeChunk::updateElementConnections() {
   for (int i = 0; i < 100; i++) {
     for (int j = 0; j < 100; j++) {
       for (int k = 0; k < 100; k++) {
+        /*
+        //should used in two way linking.
         if ((i + j + k) % 2 == 1) {
           continue;
         }
+         */
         this->updateElementConnection(i, j, k);
       }
     }
@@ -79,8 +82,8 @@ void LatticeChunk::updateElementConnections() {
 //updateElementConnection
 
 void LatticeChunk::updateElementConnection(int x, int y, int z) {
-  auto neighbors = this->getElementNeighbors(x, y, z);
-  auto distributary = this->getElementDistributary(neighbors);
+  HexaheElement neighbors = this->getElementNeighbors(x, y, z);
+  HexaheDistributary distributary = this->getElementDistributary(neighbors);
 
   this->getElement(x, y, z)->setNeighbor(neighbors, distributary);
 }
@@ -146,6 +149,6 @@ HexaheElement LatticeChunk::getElementNeighbors(int x, int y, int z) {
  * Get element by 3d racord(?).
  */
 StructureElement* LatticeChunk::getElement(int x, int y, int z) {
-  int index = x + 10 * y + 100 * z;
+  int index = x + 100 * y + 10000 * z;
   return this->elements[index];
 }

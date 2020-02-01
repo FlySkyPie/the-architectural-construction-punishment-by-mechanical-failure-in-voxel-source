@@ -47,8 +47,8 @@ private:
   Capacitor gravitaionCapacitor;
   Capacitor correctionCapacitor;
 
-  std::array< StructureElement *, 6> neighbors;
-  std::array< bool, 6 > distributary;
+  HexaheElement  neighbors;
+  HexaheDistributary distributary;
 
   float getGravitaionDifference();
 

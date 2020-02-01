@@ -1,6 +1,7 @@
 #include <cmath>
 #include <cstdint>
-#include <iostream>//edbug
+#include <iostream>//debug
+#include <typeinfo>//debug
 #include "StructureElement.h"
 
 StructureElement::StructureElement(float mass, bool boundary, bool solid) {
