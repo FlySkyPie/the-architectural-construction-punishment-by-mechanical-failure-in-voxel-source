@@ -1,4 +1,5 @@
 #include <array>
+#include <cmath>
 #include "LatticeChunk.h"
 #include "StructureElement.h"
 
@@ -42,7 +43,7 @@ float LatticeChunk::getCorrection(int x, int y, int z) {
 }
 
 float LatticeChunk::getCorrectedGravitation(int x, int y, int z) {
-  return this->getElement(x, y, z)->getCorrectedGravitation();
+  return std::abs(this->getElement(x, y, z)->getCorrectedGravitation());
 }
 
 void LatticeChunk::createElements(ChunkMap chunkConfig) {
