@@ -64,6 +64,9 @@ bool StructureElement::isSolid() {
  * Flow gravitation to neighbor elements, excepted the element above it.
  */
 void StructureElement::flowGravitation() {
+  if (!this->solid) {
+    return;
+  }
   char allocation = 0;
 
   for (int i = 0; i < 5; i++) {
@@ -85,6 +88,9 @@ void StructureElement::flowGravitation() {
 }
 
 void StructureElement::updateGravitation() {
+  if (!this->solid) {
+    return;
+  }
   if (this->boundary) {
     this->gravitaionCapacitor.energyBuffer = 0;
   }
@@ -95,10 +101,13 @@ void StructureElement::updateGravitation() {
 }
 
 void StructureElement::flowCorrection() {
+  if (!this->solid) {
+    return;
+  }
   char allocation = 0;
 
   for (int i = 0; i < 4; i++) {
-    if (this->neighbors.at(i)) {
+    if (this->distributary.at(i)) {
       allocation += 1;
     }
   }
@@ -106,7 +115,7 @@ void StructureElement::flowCorrection() {
   float value = this->correctionCapacitor.energy / allocation;
 
   for (int i = 0; i < 4; i++) {
-    if (this->neighbors.at(i)) {
+    if (this->distributary.at(i)) {
       this->neighbors.at(i)->addCorrection(value);
     }
   }
@@ -116,6 +125,9 @@ void StructureElement::flowCorrection() {
 }
 
 void StructureElement::updateCorrection() {
+  if (!this->solid) {
+    return;
+  }
   this->correctionCapacitor.oldEnergy = this->correctionCapacitor.energy;
   this->correctionCapacitor.energy = this->correctionCapacitor.energyBuffer;
   this->correctionCapacitor.energyBuffer = 0;
