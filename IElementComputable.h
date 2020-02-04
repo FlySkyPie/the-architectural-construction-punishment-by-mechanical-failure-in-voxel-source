@@ -10,6 +10,6 @@ public:
   virtual void updateGravitation() = 0;
   virtual void flowCorrection() = 0;
   virtual void updateCorrection() = 0;
-  virtual void updateYield() = 0;
+  virtual bool updateYield() = 0;
 };
 

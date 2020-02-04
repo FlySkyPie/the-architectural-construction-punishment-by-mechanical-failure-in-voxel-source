@@ -6,16 +6,11 @@
 
 StructureElement::StructureElement(float mass, bool boundary, bool solid) {
   this->mass = mass;
+  this->yieldPoint = 120.0; //for early test
   this->boundary = boundary;
   this->solid = solid;
 
-  this->gravitaionCapacitor.energy = 0;
-  this->gravitaionCapacitor.energyBuffer = 0;
-  this->gravitaionCapacitor.oldEnergy = 0;
-
-  this->correctionCapacitor.energy = 0;
-  this->correctionCapacitor.energyBuffer = 0;
-  this->correctionCapacitor.oldEnergy = 0;
+  this->initCapacitor();
 
   for (int i = 0; i < 6; i++) {
     this->neighbors.at(i) = nullptr;
@@ -26,7 +21,7 @@ StructureElement::~StructureElement() {
 }
 
 /***********************************************
- * Interfaces from IGravitationElement.
+ * Interfaces from IElementBoundary.
  ************************************************/
 
 void StructureElement::addGravitation(float gravitation) {
@@ -37,13 +32,13 @@ void StructureElement::addCorrection(float correction) {
   this->correctionCapacitor.energyBuffer += correction;
 }
 
-/***********************************************
- * Interfaces from IElementStatus.
- ************************************************/
-
 void StructureElement::updateDistributary(int axis, int direction, bool status) {
   this->distributary.at(axis * 2 + direction) = status;
 }
+
+/***********************************************
+ * Interfaces from IElementLink.
+ ************************************************/
 
 void StructureElement::setNeighbor(HexaheElement elements, HexaheDistributary distributary) {
   for (int i = 0; i < 6; i++) {
@@ -52,12 +47,8 @@ void StructureElement::setNeighbor(HexaheElement elements, HexaheDistributary di
   }
 }
 
-bool StructureElement::isSolid() {
-  return this->solid;
-}
-
 /***********************************************
- * Interfaces from IComputableElement.
+ * Interfaces from IElementComputable.
  ************************************************/
 
 /*
@@ -133,8 +124,19 @@ void StructureElement::updateCorrection() {
   this->correctionCapacitor.energyBuffer = 0;
 }
 
+bool StructureElement::updateYield() {
+  if (!this->solid) {
+    return 0;
+  }
+  if (this->getCorrectedGravitation()>this->yieldPoint) {
+    this->yield();
+    return 1;
+  }
+  return 0;
+}
+
 /***********************************************
- * Interfaces from IElementResult.
+ * Interfaces from IElementStatus.
  ************************************************/
 
 float StructureElement::getGravitation() {
@@ -146,8 +148,11 @@ float StructureElement::getCorrection() {
 }
 
 float StructureElement::getCorrectedGravitation() {
-  return (this->gravitaionCapacitor.energy - this->correctionCapacitor.energy);
+  return std::abs(this->gravitaionCapacitor.energy - this->correctionCapacitor.energy);
+}
 
+bool StructureElement::isSolid() {
+  return this->solid;
 }
 
 /***********************************************
@@ -156,5 +161,52 @@ float StructureElement::getCorrectedGravitation() {
 
 float StructureElement::getGravitaionDifference() {
   return (this->gravitaionCapacitor.energy - this->gravitaionCapacitor.oldEnergy);
+}
 
+/*
+ * The block has broken by gravitation.
+ * should remove boundary and exceeded and correction from neighbors.
+ */
+
+void StructureElement::yield() {
+  //remove exceeded correction
+  float exceedeCorrection = this->correctionCapacitor.energy - this->gravitaionCapacitor.energy;
+  char allocation = 0;
+
+  for (int i = 0; i < 4; i++) {
+    if (this->distributary.at(i)) {
+      allocation += 1;
+    }
+  }
+
+  float value = exceedeCorrection / allocation;
+
+  for (int i = 0; i < 4; i++) {
+    if (this->distributary.at(i)) {
+      this->neighbors.at(i)->addCorrection(value);
+    }
+  }
+  //remove boundary.
+  for (int i = 0; i < 3; i++) {
+    for (int direction = 0; direction <= 1; direction++) {
+      if (this->neighbors.at(i * 2 + direction)) {
+        this->neighbors.at(i * 2 + direction)->updateDistributary(i, !direction, 0);
+        this->updateDistributary(i, direction, 0);
+      }
+    }
+  }
+
+  //initial this element to air
+  this->solid = false;
+  this->initCapacitor();
+}
+
+void StructureElement::initCapacitor() {
+  this->gravitaionCapacitor.energy = 0;
+  this->gravitaionCapacitor.energyBuffer = 0;
+  this->gravitaionCapacitor.oldEnergy = 0;
+
+  this->correctionCapacitor.energy = 0;
+  this->correctionCapacitor.energyBuffer = 0;
+  this->correctionCapacitor.oldEnergy = 0;
 }

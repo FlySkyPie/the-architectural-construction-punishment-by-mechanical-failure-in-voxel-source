@@ -32,6 +32,7 @@ public:
   void updateGravitation();
   void flowCorrection();
   void updateCorrection();
+  bool updateYield();
 
   //IElementStatus
   float getGravitation();
@@ -41,15 +42,22 @@ public:
 
 private:
   float mass;
+  /*
+   * The boundary of gravitation,
+   * used to remove gravitation under bottom of chunk.
+   */
   bool boundary;
+  float yieldPoint;
   bool solid;
 
   Capacitor gravitaionCapacitor;
   Capacitor correctionCapacitor;
 
-  HexaheElement  neighbors;
+  HexaheElement neighbors;
   HexaheDistributary distributary;
 
   float getGravitaionDifference();
+  void yield();
+  void initCapacitor();
 
 };

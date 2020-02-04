@@ -32,6 +32,10 @@ void LatticeChunk::tick() {
   for (int i = 0; i < 1000000; i++) {
     this->elements[i]->updateCorrection();
   }
+
+  for (int i = 0; i < 1000000; i++) {
+    this->elements[i]->updateYield();
+  }
 }
 
 float LatticeChunk::getGravitation(int x, int y, int z) {
@@ -43,7 +47,7 @@ float LatticeChunk::getCorrection(int x, int y, int z) {
 }
 
 float LatticeChunk::getCorrectedGravitation(int x, int y, int z) {
-  return std::abs(this->getElement(x, y, z)->getCorrectedGravitation());
+  return this->getElement(x, y, z)->getCorrectedGravitation();
 }
 
 void LatticeChunk::createElements(ChunkMap chunkConfig) {
