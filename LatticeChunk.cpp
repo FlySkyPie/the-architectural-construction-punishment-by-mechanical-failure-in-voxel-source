@@ -1,5 +1,7 @@
 #include <array>
 #include <cmath>
+#include <thread>
+#include <vector>
 #include "LatticeChunk.h"
 #include "StructureElement.h"
 
@@ -17,25 +19,11 @@ LatticeChunk::~LatticeChunk() {
 }
 
 void LatticeChunk::tick() {
-  for (int i = 0; i < 1000000; i++) {
-    this->elements[i]->flowGravitation();
-  }
-
-  for (int i = 0; i < 1000000; i++) {
-    this->elements[i]->updateGravitation();
-  }
-
-  for (int i = 0; i < 1000000; i++) {
-    this->elements[i]->flowCorrection();
-  }
-
-  for (int i = 0; i < 1000000; i++) {
-    this->elements[i]->updateCorrection();
-  }
-
-  for (int i = 0; i < 1000000; i++) {
-    this->elements[i]->updateYield();
-  }
+  this->multiComputeFlowGravitation();
+  this->multiComputeUpdateGravitation();
+  this->multiComputeFlowCorrection();
+  this->multiComputeUpdateCorrection();
+  this->multiComputeUpdateYield();
 }
 
 float LatticeChunk::getGravitation(int x, int y, int z) {
@@ -156,4 +144,82 @@ HexaheElement LatticeChunk::getElementNeighbors(int x, int y, int z) {
 StructureElement* LatticeChunk::getElement(int x, int y, int z) {
   int index = x + 100 * y + 10000 * z;
   return this->elements[index];
+}
+
+void LatticeChunk::multiComputeFlowGravitation() {
+  std::vector<std::thread> threads;
+  int size = 1000000 / 5;
+  for (int i = 0; i < 5; i++) {
+    threads.push_back(std::thread(&LatticeChunk::multiComputeThread, this, 1, i*size, size));
+  }
+  for (int i = 0; i < threads.size(); i++) {
+    threads.at(i).join();
+  }
+}
+
+void LatticeChunk::multiComputeUpdateGravitation() {
+  std::vector<std::thread> threads;
+  int size = 1000000 / 5;
+  for (int i = 0; i < 5; i++) {
+    threads.push_back(std::thread(&LatticeChunk::multiComputeThread, this, 2, i*size, size));
+  }
+  for (int i = 0; i < threads.size(); i++) {
+    threads.at(i).join();
+  }
+}
+
+void LatticeChunk::multiComputeFlowCorrection() {
+  std::vector<std::thread> threads;
+  int size = 1000000 / 5;
+  for (int i = 0; i < 5; i++) {
+    threads.push_back(std::thread(&LatticeChunk::multiComputeThread, this, 3, i*size, size));
+  }
+  for (int i = 0; i < threads.size(); i++) {
+    threads.at(i).join();
+  }
+}
+
+void LatticeChunk::multiComputeUpdateCorrection() {
+  std::vector<std::thread> threads;
+  int size = 1000000 / 5;
+  for (int i = 0; i < 5; i++) {
+    threads.push_back(std::thread(&LatticeChunk::multiComputeThread, this, 4, i*size, size));
+  }
+  for (int i = 0; i < threads.size(); i++) {
+    threads.at(i).join();
+  }
+}
+
+void LatticeChunk::multiComputeUpdateYield() {
+  std::vector<std::thread> threads;
+  int size = 1000000 / 5;
+  for (int i = 0; i < 5; i++) {
+    threads.push_back(std::thread(&LatticeChunk::multiComputeThread, this, 5, i*size, size));
+  }
+  for (int i = 0; i < threads.size(); i++) {
+    threads.at(i).join();
+  }
+}
+
+void LatticeChunk::multiComputeThread(int mission, int start, int size) {
+  for (int i = start; i < (start + size); i++) {
+
+    switch (mission) {
+      case 1:
+        this->elements.at(i)->flowGravitation();
+        break;
+      case 2:
+        this->elements.at(i)->updateGravitation();
+        break;
+      case 3:
+        this->elements.at(i)->flowCorrection();
+        break;
+      case 4:
+        this->elements.at(i)->updateCorrection();
+        break;
+      case 5:
+        this->elements.at(i)->updateYield();
+        break;
+    }
+  }
 }

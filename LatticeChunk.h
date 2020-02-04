@@ -12,12 +12,12 @@ public:
   ~LatticeChunk();
 
   void tick();
-  float getGravitation(int x, int y, int z) ;
-  float getCorrection(int x, int y, int z) ;
-  float getCorrectedGravitation(int x, int y, int z) ;
+  float getGravitation(int x, int y, int z);
+  float getCorrection(int x, int y, int z);
+  float getCorrectedGravitation(int x, int y, int z);
 
 private:
-  ChunkElements elements ;
+  ChunkElements elements;
 
   void createElements(ChunkMap chunkConfig);
   void updateElementConnections();
@@ -26,4 +26,11 @@ private:
   HexaheElement getElementNeighbors(int x, int y, int z);
   HexaheDistributary getElementDistributary(HexaheElement neighbors);
   StructureElement * getElement(int x, int y, int z);
+
+  void multiComputeFlowGravitation();
+  void multiComputeUpdateGravitation();
+  void multiComputeFlowCorrection();
+  void multiComputeUpdateCorrection();
+  void multiComputeUpdateYield();
+  void multiComputeThread(int mission, int start, int size);
 };
