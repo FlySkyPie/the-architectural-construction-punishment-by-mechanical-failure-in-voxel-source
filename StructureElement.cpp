@@ -187,12 +187,10 @@ void StructureElement::yield() {
     }
   }
   //remove boundary.
-  for (int i = 0; i < 3; i++) {
-    for (int direction = 0; direction <= 1; direction++) {
-      if (this->neighbors.at(i * 2 + direction)) {
-        this->neighbors.at(i * 2 + direction)->updateDistributary(i, !direction, 0);
-        this->updateDistributary(i, direction, 0);
-      }
+  for (int i = 0; i < 6; i++) {
+    if (this->neighbors.at(i)) {
+      this->neighbors.at(i)->updateDistributary(i / 2, !(i % 2), 0);
+      this->updateDistributary(i / 2, (i % 2), 0);
     }
   }
 

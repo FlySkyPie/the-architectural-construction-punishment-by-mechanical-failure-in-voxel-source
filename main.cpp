@@ -21,8 +21,9 @@ void printData(LatticeChunk * latticeChunk) {
   for (int j = 0; j < 100; j++) {
     for (int i = 0; i < 100; i++) {
       //std::cout << latticeChunk->getGravitation(i, 0, j) << ",";
-      std::cout << latticeChunk->getCorrection(i, 0, j) << ",";
-      //std::cout << latticeChunk->getCorrectedGravitation(i, 0, j) << ",";
+      //std::cout << latticeChunk->getCorrection(i, 0, j) << ",";
+      std::cout << latticeChunk->getCorrectedGravitation(i, 0, j) << ",";
+      //std::cout << latticeChunk->isSolid(i, 0, j) << ",";
     }
     //std::cout << "\n";
   }
@@ -34,9 +35,11 @@ int main() {
   readFile(&map);
 
   LatticeChunk * latticeChunk = new LatticeChunk(map);
-  for (int i = 0; i < 1000; i++) {
+  //for (int i = 0; i < 1000; i++) {
+  for (int i = 0; i < 400; i++) {
     latticeChunk->tick();
-    if (i % 10 == 0) {
+    //if (i % 10 == 0) {
+    if (i >= 300 && i < 400) {
       printData(latticeChunk);
     }
   }

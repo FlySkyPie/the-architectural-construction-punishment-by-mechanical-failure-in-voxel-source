@@ -15,6 +15,7 @@ public:
   float getGravitation(int x, int y, int z);
   float getCorrection(int x, int y, int z);
   float getCorrectedGravitation(int x, int y, int z);
+  bool isSolid(int x, int y, int z);
 
 private:
   ChunkElements elements;
@@ -32,5 +33,6 @@ private:
   void multiComputeFlowCorrection();
   void multiComputeUpdateCorrection();
   void multiComputeUpdateYield();
+  void multiCompute(int mission);
   void multiComputeThread(int mission, int start, int size);
 };

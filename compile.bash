@@ -1,2 +1,2 @@
 #!/bin/bash
- g++ -g ./*.cpp -o  run
+ g++ -g ./*.cpp -lpthread -o  run

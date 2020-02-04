@@ -19,11 +19,11 @@ LatticeChunk::~LatticeChunk() {
 }
 
 void LatticeChunk::tick() {
-  this->multiComputeFlowGravitation();
-  this->multiComputeUpdateGravitation();
-  this->multiComputeFlowCorrection();
-  this->multiComputeUpdateCorrection();
-  this->multiComputeUpdateYield();
+  this->multiCompute(FlowGravitationMission);
+  this->multiCompute(UpdateGravitationMission);
+  this->multiCompute(UpdateYieldMission);
+  this->multiCompute(FlowCorrectionMission);
+  this->multiCompute(UpdateCorrectionMission);
 }
 
 float LatticeChunk::getGravitation(int x, int y, int z) {
@@ -36,6 +36,10 @@ float LatticeChunk::getCorrection(int x, int y, int z) {
 
 float LatticeChunk::getCorrectedGravitation(int x, int y, int z) {
   return this->getElement(x, y, z)->getCorrectedGravitation();
+}
+
+bool LatticeChunk::isSolid(int x, int y, int z) {
+  return this->getElement(x, y, z)->isSolid();
 }
 
 void LatticeChunk::createElements(ChunkMap chunkConfig) {
@@ -146,55 +150,12 @@ StructureElement* LatticeChunk::getElement(int x, int y, int z) {
   return this->elements[index];
 }
 
-void LatticeChunk::multiComputeFlowGravitation() {
+void LatticeChunk::multiCompute(int mission) {
   std::vector<std::thread> threads;
-  int size = 1000000 / 5;
-  for (int i = 0; i < 5; i++) {
-    threads.push_back(std::thread(&LatticeChunk::multiComputeThread, this, 1, i*size, size));
-  }
-  for (int i = 0; i < threads.size(); i++) {
-    threads.at(i).join();
-  }
-}
-
-void LatticeChunk::multiComputeUpdateGravitation() {
-  std::vector<std::thread> threads;
-  int size = 1000000 / 5;
-  for (int i = 0; i < 5; i++) {
-    threads.push_back(std::thread(&LatticeChunk::multiComputeThread, this, 2, i*size, size));
-  }
-  for (int i = 0; i < threads.size(); i++) {
-    threads.at(i).join();
-  }
-}
-
-void LatticeChunk::multiComputeFlowCorrection() {
-  std::vector<std::thread> threads;
-  int size = 1000000 / 5;
-  for (int i = 0; i < 5; i++) {
-    threads.push_back(std::thread(&LatticeChunk::multiComputeThread, this, 3, i*size, size));
-  }
-  for (int i = 0; i < threads.size(); i++) {
-    threads.at(i).join();
-  }
-}
-
-void LatticeChunk::multiComputeUpdateCorrection() {
-  std::vector<std::thread> threads;
-  int size = 1000000 / 5;
-  for (int i = 0; i < 5; i++) {
-    threads.push_back(std::thread(&LatticeChunk::multiComputeThread, this, 4, i*size, size));
-  }
-  for (int i = 0; i < threads.size(); i++) {
-    threads.at(i).join();
-  }
-}
-
-void LatticeChunk::multiComputeUpdateYield() {
-  std::vector<std::thread> threads;
-  int size = 1000000 / 5;
-  for (int i = 0; i < 5; i++) {
-    threads.push_back(std::thread(&LatticeChunk::multiComputeThread, this, 5, i*size, size));
+  int chunk = 5;
+  int size = 1000000 / chunk;
+  for (int i = 0; i < chunk; i++) {
+    threads.push_back(std::thread(&LatticeChunk::multiComputeThread, this, mission, i*size, size));
   }
   for (int i = 0; i < threads.size(); i++) {
     threads.at(i).join();
