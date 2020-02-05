@@ -16,7 +16,7 @@ public:
   float getCorrection(int x, int y, int z);
   float getCorrectedGravitation(int x, int y, int z);
   bool isSolid(int x, int y, int z);
-  bool isCrashing(int x, int y, int z);
+  bool isIsolated(int x, int y, int z);
 
 private:
   ChunkElements elements;

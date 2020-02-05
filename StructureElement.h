@@ -39,7 +39,7 @@ public:
   float getCorrection();
   float getCorrectedGravitation();
   bool isSolid();
-  bool isCrashing();
+  bool isIsolated();
 
 private:
   float mass;
@@ -51,7 +51,6 @@ private:
   float gravitationCrashPoint;
   float correctedCrashPoint;
   bool solid;
-  bool crashing;
 
   Capacitor gravitaionCapacitor;
   Capacitor correctionCapacitor;
@@ -61,9 +60,8 @@ private:
 
   float getGravitaionDifference();
   void yield();
-  void crash();
   void initCapacitor();
-  
+
   int getCorrectionAllocation();
   int getGravitationAllocation();
 

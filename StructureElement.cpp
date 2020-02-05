@@ -7,7 +7,7 @@
 
 StructureElement::StructureElement(float mass, bool boundary, bool solid) {
   this->mass = mass;
-  this->gravitationCrashPoint = 500; //for early test
+  this->gravitationCrashPoint = 350; //for early test
   this->correctedCrashPoint = 120; //for early test
   this->boundary = boundary;
   this->solid = solid;
@@ -57,27 +57,24 @@ void StructureElement::setNeighbor(HexaheElement elements, HexaheDistributary di
  * Flow gravitation to neighbor elements, excepted the element above it.
  */
 void StructureElement::flowGravitation() {
-  if (!(this->solid^this->crashing)) {
+  if (!this->solid) {
     return;
   }
   //gravitation rain
-  if (this->solid) {
-    this->addGravitation(this->mass);
-  }
+  this->addGravitation(this->mass);
 
   //flow to neighbors.
-  float rate = this->crashing ? 0.1 : 1;
   int allocation = this->getGravitationAllocation();
-  float value = (allocation == 0) ? 0 : rate * this->gravitaionCapacitor.energy / allocation;
-
-
-  for (int i = 0; i < 5; i++) {
-    if (this->distributary.at(i)) {
-      this->neighbors.at(i)->addGravitation(value);
+  if (allocation == 0) {
+    this->addGravitation(this->getGravitation());
+  } else {
+    float distributedValue = this->getGravitation() / allocation;
+    for (int i = 0; i < 5; i++) {
+      if (this->distributary.at(i)) {
+        this->neighbors.at(i)->addGravitation(distributedValue);
+      }
     }
   }
-
-  this->addGravitation(this->getGravitation()*(1 - rate));
 }
 
 void StructureElement::updateGravitation() {
@@ -94,25 +91,24 @@ void StructureElement::updateGravitation() {
 }
 
 void StructureElement::flowCorrection() {
-  if (!(this->solid^this->crashing)) {
+  if (!this->solid) {
     return;
   }
   //Increment from gravitation changed.
-  if (this->solid) {
-    this->addCorrection(this->getGravitaionDifference());
-  }
+  this->addCorrection(this->getGravitaionDifference());
 
   //flow to neighbors.
-  float rate = this->crashing ? 0.1 : 1;
   int allocation = this->getCorrectionAllocation();
-  float value = (allocation == 0) ? 0 : rate * this->correctionCapacitor.energy / allocation;
-
-  for (int i = 0; i < 4; i++) {
-    if (this->distributary.at(i)) {
-      this->neighbors.at(i)->addCorrection(value);
+  if (allocation == 0) {
+    this->addCorrection(this->getCorrection());
+  } else {
+    float distributedValue = this->correctionCapacitor.energy / allocation;
+    for (int i = 0; i < 4; i++) {
+      if (this->distributary.at(i)) {
+        this->neighbors.at(i)->addCorrection(distributedValue);
+      }
     }
   }
-  this->addCorrection(this->getCorrection()*(1 - rate));
 }
 
 void StructureElement::updateCorrection() {
@@ -125,11 +121,11 @@ void StructureElement::updateCorrection() {
 }
 
 bool StructureElement::updateYield() {
-  if (!(this->solid^this->crashing)) {
+  if (!this->solid) {
     return 0;
   }
 
-  bool yieldCondition = !this->crashing &&
+  bool yieldCondition =
           (this->getCorrectedGravitation() > this->correctedCrashPoint ||
           this->getGravitation() > this->gravitationCrashPoint);
 
@@ -138,10 +134,6 @@ bool StructureElement::updateYield() {
     return 1;
   }
 
-  if (std::abs(this->getCorrection()) < 10 && this->crashing) {
-    this->crash();
-    return 0;
-  }
   return 0;
 }
 
@@ -165,8 +157,18 @@ bool StructureElement::isSolid() {
   return this->solid;
 }
 
-bool StructureElement::isCrashing() {
-  return this->crashing;
+bool StructureElement::isIsolated() {
+  if (!this->solid) {
+    return 0;
+  }
+  int allocation = 0;
+
+  for (int i = 0; i < 6; i++) {
+    if (this->distributary.at(i)) {
+      allocation += 1;
+    }
+  }
+  return (allocation == 0) ? true : false;
 }
 
 /***********************************************
@@ -187,23 +189,13 @@ void StructureElement::yield() {
   for (int i = 0; i < 6; i++) {
     if (this->neighbors.at(i)) {
       this->neighbors.at(i)->updateDistributary(i / 2, !(i % 2), 0);
+      this->updateDistributary(i / 2, (i % 2), 0);
     }
   }
 
   //setting to crashing status.
-  this->solid = false;
-  this->crashing = true;
-}
-
-void StructureElement::crash() {
-  //remove boundary.
-  for (int i = 0; i < 6; i++) {
-    if (this->neighbors.at(i)) {
-      this->updateDistributary(i / 2, (i % 2), 0);
-    }
-  }
-  this->crashing = false;
   this->initCapacitor();
+  this->solid = false;
 }
 
 int StructureElement::getCorrectionAllocation() {

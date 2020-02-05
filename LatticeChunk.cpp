@@ -21,9 +21,10 @@ LatticeChunk::~LatticeChunk() {
 void LatticeChunk::tick() {
   this->multiCompute(FlowGravitationMission);
   this->multiCompute(UpdateGravitationMission);
-  this->multiCompute(UpdateYieldMission);
+  
   this->multiCompute(FlowCorrectionMission);
   this->multiCompute(UpdateCorrectionMission);
+  this->multiCompute(UpdateYieldMission);
 }
 
 float LatticeChunk::getGravitation(int x, int y, int z) {
@@ -42,8 +43,8 @@ bool LatticeChunk::isSolid(int x, int y, int z) {
   return this->getElement(x, y, z)->isSolid();
 }
 
-bool LatticeChunk::isCrashing(int x, int y, int z) {
-  return this->getElement(x, y, z)->isCrashing();
+bool  LatticeChunk::isIsolated(int x, int y, int z){
+  return this->getElement(x, y, z)->isIsolated();
 }
 
 void LatticeChunk::createElements(ChunkMap chunkConfig) {
@@ -68,12 +69,6 @@ void LatticeChunk::updateElementConnections() {
   for (int i = 0; i < 100; i++) {
     for (int j = 0; j < 100; j++) {
       for (int k = 0; k < 100; k++) {
-        /*
-        //should used in two way linking.
-        if ((i + j + k) % 2 == 1) {
-          continue;
-        }
-         */
         this->updateElementConnection(i, j, k);
       }
     }
@@ -147,7 +142,7 @@ HexaheElement LatticeChunk::getElementNeighbors(int x, int y, int z) {
 }
 
 /*
- * Get element by 3d racord(?).
+ * Get element by 3d coordinate(?).
  */
 StructureElement* LatticeChunk::getElement(int x, int y, int z) {
   int index = x + 100 * y + 10000 * z;

@@ -10,6 +10,6 @@ public:
   virtual float getCorrection() = 0;
   virtual float getCorrectedGravitation() = 0;
   virtual bool isSolid() = 0;
-  virtual bool isCrashing() = 0;
+  virtual bool isIsolated() = 0;
 };
 
