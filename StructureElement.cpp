@@ -1,12 +1,14 @@
 #include <cmath>
 #include <cstdint>
 #include <iostream>//debug
-#include <typeinfo>//debug
+//#include <typeinfo>//debug
+#include <stdexcept>
 #include "StructureElement.h"
 
 StructureElement::StructureElement(float mass, bool boundary, bool solid) {
   this->mass = mass;
-  this->yieldPoint = 120.0; //for early test
+  this->gravitationCrashPoint = 500; //for early test
+  this->correctedCrashPoint = 120; //for early test
   this->boundary = boundary;
   this->solid = solid;
 
@@ -55,18 +57,19 @@ void StructureElement::setNeighbor(HexaheElement elements, HexaheDistributary di
  * Flow gravitation to neighbor elements, excepted the element above it.
  */
 void StructureElement::flowGravitation() {
-  if (!this->solid) {
+  if (!(this->solid^this->crashing)) {
     return;
   }
-  char allocation = 0;
-
-  for (int i = 0; i < 5; i++) {
-    if (this->distributary.at(i)) {
-      allocation += 1;
-    }
+  //gravitation rain
+  if (this->solid) {
+    this->addGravitation(this->mass);
   }
 
-  float value = this->gravitaionCapacitor.energy / allocation;
+  //flow to neighbors.
+  float rate = this->crashing ? 0.1 : 1;
+  int allocation = this->getGravitationAllocation();
+  float value = (allocation == 0) ? 0 : rate * this->gravitaionCapacitor.energy / allocation;
+
 
   for (int i = 0; i < 5; i++) {
     if (this->distributary.at(i)) {
@@ -74,14 +77,13 @@ void StructureElement::flowGravitation() {
     }
   }
 
-  //gravitation rain
-  this->addGravitation(this->mass);
+  this->addGravitation(this->getGravitation()*(1 - rate));
 }
 
 void StructureElement::updateGravitation() {
-  if (!this->solid) {
-    return;
-  }
+  //if (!(this->solid^this->crashing)) {
+  //  return;
+  //}
   if (this->boundary) {
     this->gravitaionCapacitor.energyBuffer = 0;
   }
@@ -92,45 +94,53 @@ void StructureElement::updateGravitation() {
 }
 
 void StructureElement::flowCorrection() {
-  if (!this->solid) {
+  if (!(this->solid^this->crashing)) {
     return;
   }
-  char allocation = 0;
-
-  for (int i = 0; i < 4; i++) {
-    if (this->distributary.at(i)) {
-      allocation += 1;
-    }
+  //Increment from gravitation changed.
+  if (this->solid) {
+    this->addCorrection(this->getGravitaionDifference());
   }
 
-  float value = this->correctionCapacitor.energy / allocation;
+  //flow to neighbors.
+  float rate = this->crashing ? 0.1 : 1;
+  int allocation = this->getCorrectionAllocation();
+  float value = (allocation == 0) ? 0 : rate * this->correctionCapacitor.energy / allocation;
 
   for (int i = 0; i < 4; i++) {
     if (this->distributary.at(i)) {
       this->neighbors.at(i)->addCorrection(value);
     }
   }
-
-  //Increment from gravitation changed.
-  this->addCorrection(this->getGravitaionDifference());
+  this->addCorrection(this->getCorrection()*(1 - rate));
 }
 
 void StructureElement::updateCorrection() {
-  if (!this->solid) {
-    return;
-  }
+  //if (!(this->solid^this->crashing)) {
+  //  return;
+  //}
   this->correctionCapacitor.oldEnergy = this->correctionCapacitor.energy;
   this->correctionCapacitor.energy = this->correctionCapacitor.energyBuffer;
   this->correctionCapacitor.energyBuffer = 0;
 }
 
 bool StructureElement::updateYield() {
-  if (!this->solid) {
+  if (!(this->solid^this->crashing)) {
     return 0;
   }
-  if (this->getCorrectedGravitation()>this->yieldPoint) {
+
+  bool yieldCondition = !this->crashing &&
+          (this->getCorrectedGravitation() > this->correctedCrashPoint ||
+          this->getGravitation() > this->gravitationCrashPoint);
+
+  if (yieldCondition) {
     this->yield();
     return 1;
+  }
+
+  if (std::abs(this->getCorrection()) < 10 && this->crashing) {
+    this->crash();
+    return 0;
   }
   return 0;
 }
@@ -155,6 +165,10 @@ bool StructureElement::isSolid() {
   return this->solid;
 }
 
+bool StructureElement::isCrashing() {
+  return this->crashing;
+}
+
 /***********************************************
  * Private Stuff
  ************************************************/
@@ -169,34 +183,49 @@ float StructureElement::getGravitaionDifference() {
  */
 
 void StructureElement::yield() {
-  //remove exceeded correction
-  float exceedeCorrection = this->correctionCapacitor.energy - this->gravitaionCapacitor.energy;
-  char allocation = 0;
+  //remove 1 way boundary.
+  for (int i = 0; i < 6; i++) {
+    if (this->neighbors.at(i)) {
+      this->neighbors.at(i)->updateDistributary(i / 2, !(i % 2), 0);
+    }
+  }
+
+  //setting to crashing status.
+  this->solid = false;
+  this->crashing = true;
+}
+
+void StructureElement::crash() {
+  //remove boundary.
+  for (int i = 0; i < 6; i++) {
+    if (this->neighbors.at(i)) {
+      this->updateDistributary(i / 2, (i % 2), 0);
+    }
+  }
+  this->crashing = false;
+  this->initCapacitor();
+}
+
+int StructureElement::getCorrectionAllocation() {
+  int allocation = 0;
 
   for (int i = 0; i < 4; i++) {
     if (this->distributary.at(i)) {
       allocation += 1;
     }
   }
+  return allocation;
+}
 
-  float value = exceedeCorrection / allocation;
+int StructureElement::getGravitationAllocation() {
+  int allocation = 0;
 
-  for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 5; i++) {
     if (this->distributary.at(i)) {
-      this->neighbors.at(i)->addCorrection(value);
+      allocation += 1;
     }
   }
-  //remove boundary.
-  for (int i = 0; i < 6; i++) {
-    if (this->neighbors.at(i)) {
-      this->neighbors.at(i)->updateDistributary(i / 2, !(i % 2), 0);
-      this->updateDistributary(i / 2, (i % 2), 0);
-    }
-  }
-
-  //initial this element to air
-  this->solid = false;
-  this->initCapacitor();
+  return allocation;
 }
 
 void StructureElement::initCapacitor() {

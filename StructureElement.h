@@ -39,6 +39,7 @@ public:
   float getCorrection();
   float getCorrectedGravitation();
   bool isSolid();
+  bool isCrashing();
 
 private:
   float mass;
@@ -47,8 +48,10 @@ private:
    * used to remove gravitation under bottom of chunk.
    */
   bool boundary;
-  float yieldPoint;
+  float gravitationCrashPoint;
+  float correctedCrashPoint;
   bool solid;
+  bool crashing;
 
   Capacitor gravitaionCapacitor;
   Capacitor correctionCapacitor;
@@ -58,6 +61,10 @@ private:
 
   float getGravitaionDifference();
   void yield();
+  void crash();
   void initCapacitor();
+  
+  int getCorrectionAllocation();
+  int getGravitationAllocation();
 
 };

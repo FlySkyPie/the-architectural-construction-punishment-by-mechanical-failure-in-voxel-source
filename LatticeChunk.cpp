@@ -42,6 +42,10 @@ bool LatticeChunk::isSolid(int x, int y, int z) {
   return this->getElement(x, y, z)->isSolid();
 }
 
+bool LatticeChunk::isCrashing(int x, int y, int z) {
+  return this->getElement(x, y, z)->isCrashing();
+}
+
 void LatticeChunk::createElements(ChunkMap chunkConfig) {
   for (int i = 0; i < 1000000; i++) {
     float mass = 0;
