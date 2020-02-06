@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+# Thanks Yang,Wei-Jie helped, added parallel computing in visualize process (multiple thread). 
 import os
 import matplotlib.pyplot as plt
 import csv
@@ -46,6 +47,7 @@ def createGifs(datas, gifs):
         gifs.append(imageio.get_reader(data[0] + ".gif"))
         os.system("rm *.png")
 
+# @link https://stackoverflow.com/questions/51517685
 def createFourViewGif(datas, gifs):
     #If they don't have the same number of frame take the shorter
     number_of_frames = gifs[0].get_length()
