@@ -1,6 +1,6 @@
 The architectural construction punishment by mechanical failure in voxel game
 ===
-![](./img/gravity flow.png)
+![](./img/gravity_flow.png)
 
 Usage
 ---
@@ -32,3 +32,4 @@ cp data?.txt '../02 data visualize/.'
 cd '../02 data visualize'
 python3 run.py
 ```
+
