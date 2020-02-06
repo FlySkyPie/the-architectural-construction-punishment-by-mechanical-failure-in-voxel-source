@@ -28,7 +28,7 @@ Start computing:
 
 Visualize data:
 ```shell
-cp *.txt '../02 data visualize/.'
-cp '../02 data visualize'
+cp data?.txt '../02 data visualize/.'
+cd '../02 data visualize'
 python3 run.py
 ```
